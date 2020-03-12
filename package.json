@@ -1,0 +1,16 @@
+{
+  "name": "fast-coding",
+  "version": "1.0.0",
+  "description": "",
+  "main": "run.js",
+  "scripts": {
+    "dev": "node run.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "inquirer": "^7.1.0",
+    "parcel": "^1.12.4"
+  }
+}
