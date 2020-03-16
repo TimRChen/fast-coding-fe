@@ -18,33 +18,52 @@ const listener = e => {
 // > 定时器版:（特点：可以触发最后一次事件的延迟，缺点：无法对事件第一次响应进行触发）
 function throttle(fn, wait) {
   let timer = null;
-  return e => {
+  return function() {
     if (!timer) {
-      timer = setTimeout(() => (fn.call(this, e), (timer = null)), wait);
+      timer = setTimeout((fn.apply(this, arguments), (timer = null)), wait);
     }
   };
 }
 
 // > 时间戳版:（特点：事件第一次响应触发，缺点：最后一次事件延迟无法触发）
-function  throttle(fn, wait) {
+function throttle(fn, wait) {
   let start = Date.now();
-  return e => {
+  return function() {
     if (Date.now() - start >= wait) {
-      fn.call(this, e);
-      start = Date.now()
+      fn.apply(this, arguments);
+      start = Date.now();
     }
-  }
+  };
 }
 
 // > 时间戳+定时器版
 function throttle(fn, wait) {
   let timer = null;
   let start = Date.now();
-  return e => {
+  return function() {
     if (Date.now() - start >= wait) {
-      clearTimeout(timer)
-      timer = setTimeout(fn.bind(this, e), wait);
-      start = Date.now()
+      timer = setTimeout(
+        (fn.apply(this, arguments), (timer = undefined)),
+        wait
+      );
+      start = Date.now();
+    }
+  };
+}
+
+// > 通用版本：
+function throttle(fn, wait) {
+  let timer = undefined;
+  let lastCallTime = Date.now();
+  return function() {
+    const timeSinceLastCall = Date.now() - lastCallTime;
+    const shouldCall = timeSinceLastCall >= wait;
+    if (shouldCall) {
+      timer = setTimeout(
+        (fn.apply(this, arguments), (timer = undefined)),
+        wait
+      );
+      lastCallTime = Date.now();
     }
   };
 }
@@ -54,6 +73,6 @@ function throttle(fn, wait) {
 //  2. 连续性，连续执行的事件适合节流场景。
 //  3. 函数实现上采用科里化思想
 
-const wait = 100 * 10; // 1s 时间长比较容易看出这三种节流实现的区别
+const wait = 500; // 500ms 时间长比较容易看出这三种节流实现的区别
 
 $box.addEventListener("mousemove", throttle(listener, wait), options);
