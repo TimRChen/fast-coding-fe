@@ -51,7 +51,7 @@ function throttle(fn, wait) {
   };
 }
 
-// > 通用版本：
+// > 时间戳+定时器版 更通用版本：
 function throttle(fn, wait) {
   let timer = undefined;
   let lastCallTime = Date.now();
@@ -63,6 +63,50 @@ function throttle(fn, wait) {
         (fn.apply(this, arguments), (timer = undefined)),
         wait
       );
+      lastCallTime = Date.now();
+    }
+  };
+}
+
+// > 时间戳+RAF版本 性能更好的一种实现：
+function throttle(fn, wait) {
+  let RAF = undefined;
+  let lastCallTime = Date.now();
+  return function() {
+    const timeSinceLastCall = Date.now() - lastCallTime;
+    const shouldCall = timeSinceLastCall >= wait;
+    if (shouldCall) {
+      const context = this;
+      const args = arguments;
+      cancelAnimationFrame(RAF);
+      RAF = requestAnimationFrame(() => fn.apply(context, args));
+      lastCallTime = Date.now();
+    }
+  };
+}
+
+// > 通用版 也可以叫兼容版
+function throttle(fn, wait) {
+  let RAF = undefined;
+  let timer = undefined;
+  let lastCallTime = Date.now();
+  return function() {
+    const timeSinceLastCall = Date.now() - lastCallTime;
+    const shouldCall = timeSinceLastCall >= wait;
+    if (shouldCall) {
+      const context = this;
+      const args = arguments;
+      if (typeof requestAnimationFrame === "function") {
+        typeof cancelAnimationFrame === "function"
+          ? cancelAnimationFrame(RAF)
+          : (RAF = undefined);
+        RAF = requestAnimationFrame(() => fn.apply(context, args));
+      } else {
+        timer = setTimeout(
+          (fn.apply(context, args), (timer = undefined)),
+          wait
+        );
+      }
       lastCallTime = Date.now();
     }
   };
